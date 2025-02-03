@@ -19,7 +19,7 @@ This API is built with Node.js and Express.js to manage a language school. It en
 
 - **Node.js**: JavaScript runtime environment.
 - **Express.js**: Web framework for Node.js.
-- **Supabase/PostgreSQL**: Database to store school-related data (students, admins, sessions, groups, etc.).
+- **Supabase/PostgreSQL**: Database to store school-related data.
 - **JWT**: JSON Web Token for user authentication.
 
 ## Contributing
