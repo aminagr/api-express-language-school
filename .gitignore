@@ -1,0 +1,26 @@
+# Node modules
+node_modules/
+
+# Environnement (variables de configuration sensibles)
+.env
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Dossiers temporaires ou de build
+tmp/
+temp/
+dist/
+
+# Fichiers de base de données
+*.sqlite
+*.db
+
+# Configuration IDE (ex : VS Code)
+.vscode/
+
+# Système d'exploitation (ex : macOS, Windows)
+.DS_Store
+Thumbs.db
