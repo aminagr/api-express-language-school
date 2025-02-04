@@ -1,5 +1,5 @@
 import supabase from '../config/db.js';
-import { fetchGroupsForLatestSession } from './dataController.js';
+import { fetchGroupsForLatestSession, fetchLatestSession } from './dataController.js';
 export const getTotalRooms = async (req, res) => {
     const { data, error } = await supabase.from('rooms').select('*');
     if (error) return res.status(500).json({ message: error.message });

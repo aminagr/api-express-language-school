@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 import supabase from '../config/db.js';
 
 
@@ -125,20 +126,19 @@ export const addStudent = async (req, res) => {
     telephone,
     mail,
     type,
-    usertype,
     genre,
     password
   } = req.body;
 
-  if (!matricule || !nom || !prenom || !date_naissance || !lieu_naissance || !adresse || !telephone || !mail || !type || !usertype || !genre || !password) {
+  if (!matricule || !nom || !prenom || !date_naissance || !lieu_naissance || !adresse || !telephone || !mail || !type || !genre || !password) {
     return res.status(400).json({ message: 'Tous les champs sont requis' });
   }
 
   try {
-
+  
     const hashedPassword = await bcrypt.hash(password, 10);
 
-
+    
     const { data: student, error: studentError } = await supabase
       .from('students')
       .insert([{
@@ -151,35 +151,33 @@ export const addStudent = async (req, res) => {
         telephone,
         mail,
         type,
-        usertype,
-        genre,
-        password: hashedPassword
+        genre
       }])
       .select('*')
       .single();
 
     if (studentError) throw studentError;
 
-
+    
     const { data: user, error: userError } = await supabase
       .from('users')
       .insert([{
         email: mail,
         password: hashedPassword,
-        role: 'student',
-        student_id: student.id
+        role: 'student', 
+        student_id: student.id 
       }])
       .select('*')
       .single();
 
     if (userError) throw userError;
 
+  
     res.status(201).json({ message: 'Étudiant et utilisateur ajoutés avec succès', student, user });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
-
 
 export const updateStudent = async (req, res) => {
   const { id } = req.params;
@@ -193,56 +191,52 @@ export const updateStudent = async (req, res) => {
     telephone,
     mail,
     type,
-    usertype,
     genre,
     password
   } = req.body;
 
   try {
-
-    if (!matricule || !nom || !prenom || !date_naissance || !lieu_naissance || !adresse || !telephone || !mail || !type || !usertype || !genre) {
-      return res.status(400).json({ message: 'Tous les champs sont requis' });
-    }
-
-    
-    let hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
+   
+    const studentUpdates = {};
+    if (matricule) studentUpdates.matricule = matricule;
+    if (nom) studentUpdates.nom = nom;
+    if (prenom) studentUpdates.prenom = prenom;
+    if (date_naissance) studentUpdates.date_naissance = date_naissance;
+    if (lieu_naissance) studentUpdates.lieu_naissance = lieu_naissance;
+    if (adresse) studentUpdates.adresse = adresse;
+    if (telephone) studentUpdates.telephone = telephone;
+    if (mail) studentUpdates.mail = mail;
+    if (type) studentUpdates.type = type;
+    if (genre) studentUpdates.genre = genre;
 
 
     const { data: student, error: studentError } = await supabase
       .from('students')
-      .update({
-        matricule,
-        nom,
-        prenom,
-        date_naissance,
-        lieu_naissance,
-        adresse,
-        telephone,
-        mail,
-        type,
-        usertype,
-        genre,
-        password: hashedPassword || undefined 
-      })
+      .update(studentUpdates)
       .eq('id', id)
       .select('*')
       .single();
 
     if (studentError) throw studentError;
 
-  
+
+    const userUpdates = {};
+    if (mail) userUpdates.email = mail;
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      userUpdates.password = hashedPassword;
+    }
+
     const { data: user, error: userError } = await supabase
       .from('users')
-      .update({
-        email: mail,
-        password: hashedPassword || undefined
-      })
-      .eq('student_id', student.id)
+      .update(userUpdates)
+      .eq('student_id', id)
       .select('*')
       .single();
 
     if (userError) throw userError;
 
+  
     res.json({ message: 'Étudiant et utilisateur mis à jour avec succès', student, user });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -250,11 +244,12 @@ export const updateStudent = async (req, res) => {
 };
 
 
+
 export const deleteStudent = async (req, res) => {
   const { id } = req.params;
 
   try {
-  
+
     const { data: user, error: userError } = await supabase
       .from('users')
       .delete()
@@ -262,13 +257,14 @@ export const deleteStudent = async (req, res) => {
 
     if (userError) throw userError;
 
-
+   
     const { data: student, error: studentError } = await supabase
       .from('students')
       .delete()
       .eq('id', id);
 
     if (studentError) throw studentError;
+
 
     res.json({ message: 'Étudiant et utilisateur supprimés avec succès', student, user });
   } catch (err) {

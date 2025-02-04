@@ -18,33 +18,52 @@ export const getAllAdmins = async (req, res) => {
   }
 };
 
+export const getAdminById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const { data: admin, error: adminError } = await supabase
+      .from('admins')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (adminError) {
+      return res.status(400).json({ message: 'Erreur lors de la récupération de l\'administrateur' });
+    }
+
+    if (!admin) {
+      return res.status(404).json({ message: 'Administrateur non trouvé' });
+    }
+
+    return res.json(admin);
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
 
 export const addAdmin = async (req, res) => {
-  const { email, username, password, usertype } = req.body;
+  const { email, username, password } = req.body;
 
-  if (!email || !username || !password || !usertype) {
-    return res.status(400).json({ message: 'Tous les champs sont requis' });
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Les champs email et password sont requis' });
   }
 
   try {
-   
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
 
     const { data: admin, error: adminError } = await supabase
       .from('admins')
-      .insert([{
-        email,
-        username,
-        password: hashedPassword,
-        usertype
-      }])
+      .insert([{ email, username: username || null }]) 
       .select('*')
       .single();
 
     if (adminError) throw adminError;
 
-
+    
     const { data: user, error: userError } = await supabase
       .from('users')
       .insert([{
@@ -58,35 +77,24 @@ export const addAdmin = async (req, res) => {
 
     if (userError) throw userError;
 
+
     res.status(201).json({ message: 'Administrateur et utilisateur ajoutés avec succès', admin, user });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-
 export const updateAdmin = async (req, res) => {
   const { id } = req.params;
-  const { email, username, password, usertype } = req.body;
+  const { email, username, password } = req.body;
 
   try {
-
-    if (!email || !username || !usertype) {
-      return res.status(400).json({ message: 'Tous les champs sont requis' });
-    }
-
-
     let hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
 
-  
+
     const { data: admin, error: adminError } = await supabase
       .from('admins')
-      .update({
-        email,
-        username,
-        password: hashedPassword || undefined, 
-        usertype
-      })
+      .update({ email, username })
       .eq('id', id)
       .select('*')
       .single();
@@ -96,10 +104,7 @@ export const updateAdmin = async (req, res) => {
 
     const { data: user, error: userError } = await supabase
       .from('users')
-      .update({
-        email,
-        password: hashedPassword || undefined
-      })
+      .update({ email, password: hashedPassword || undefined })
       .eq('admin_id', admin.id)
       .select('*')
       .single();
@@ -111,13 +116,11 @@ export const updateAdmin = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
-
 export const deleteAdmin = async (req, res) => {
   const { id } = req.params;
 
   try {
-   
+
     const { data: user, error: userError } = await supabase
       .from('users')
       .delete()
@@ -125,7 +128,7 @@ export const deleteAdmin = async (req, res) => {
 
     if (userError) throw userError;
 
-   
+
     const { data: admin, error: adminError } = await supabase
       .from('admins')
       .delete()

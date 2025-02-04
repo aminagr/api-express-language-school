@@ -31,25 +31,24 @@ export const loginUser = async (req, res) => {
 
 
 
-
 export const registerUser = async (req, res) => {
   const { role, email, password, matricule, nom, prenom, date_naissance, lieu_naissance, adresse, telephone, type, genre, username } = req.body;
 
   try {
-
     const hashedPassword = await bcrypt.hash(password, 10);
 
-   
+ 
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .insert([{ email, password: hashedPassword, role }]); 
-    
+      .insert([{ email, password: hashedPassword, role }])
+      .select('*')
+      .single();
+
     if (userError) {
       return res.status(400).json({ message: userError.message });
     }
 
-
-    const userId = userData[0].id;
+    const userId = userData.id;
 
     if (role === 'student') {
 
@@ -61,10 +60,16 @@ export const registerUser = async (req, res) => {
         return res.status(400).json({ message: studentError.message });
       }
 
+     
+      await supabase
+        .from('users')
+        .update({ student_id: userId })
+        .eq('id', userId);
+
       return res.status(201).json({ message: 'Student registered successfully' });
 
     } else if (role === 'admin') {
-   
+     
       const { data: adminData, error: adminError } = await supabase
         .from('admins')
         .insert([{ id: userId, email, username }]);
@@ -72,6 +77,12 @@ export const registerUser = async (req, res) => {
       if (adminError) {
         return res.status(400).json({ message: adminError.message });
       }
+
+  
+      await supabase
+        .from('users')
+        .update({ admin_id: userId })
+        .eq('id', userId);
 
       return res.status(201).json({ message: 'Admin registered successfully' });
 

@@ -19,19 +19,19 @@ import { protectAdmin, protectStudent } from '../middlewares/auth.js';
 import { fetchGroups, addGroup, updateGroup, deleteGroup } from '../controllers/groupsController.js';
 import { fetchRegistrations,addRegistration, updateRegistration, deleteRegistration } from '../controllers/registrationsController.js';
 import { getStudentsByGroupId, fetchStudentById,getAllStudents,addStudent, updateStudent, deleteStudent  } from '../controllers/studentController.js';
-import { getAllAdmins,  addAdmin, updateAdmin, deleteAdmin  } from '../controllers/adminController.js';
+import { getAllAdmins,  addAdmin, updateAdmin, deleteAdmin,getAdminById  } from '../controllers/adminController.js';
 const router = express.Router();
 
 
 router.post('/login', loginUser);
-router.post('register', registerUser);
+router.post('/register', registerUser);
 
 
 router.get('/admins', getAllAdmins);
 router.post('/admins', addAdmin);
 router.put('/admins/:id', updateAdmin);
 router.delete('/admins/:id', deleteAdmin);
-
+router.get('/admins/:id', getAdminById);
 
 router.get('/students', getAllStudents);
 router.get('/students/:id', fetchStudentById);
